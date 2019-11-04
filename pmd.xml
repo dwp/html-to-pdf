@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  name="DWP Integration Team PMD Ruleset"
+  xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+  xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
+  <description>DWP UC Manchester Team PMD Ruleset</description>
+
+  <rule ref="category/java/bestpractices.xml">
+    <exclude name="GuardLogStatement"/>
+  </rule>
+
+  <rule ref="category/java/codestyle.xml">
+    <exclude name="AtLeastOneConstructor"/>
+  </rule>
+
+  <rule ref="category/java/codestyle.xml/LongVariable">
+    <properties>
+      <property name="minimum" value="99"/>
+    </properties>
+  </rule>
+
+  <rule ref="category/java/codestyle.xml/ShortVariable">
+    <properties>
+      <property name="xpath">
+        <value>
+          //VariableDeclaratorId[(string-length(@Image) &lt; 3) and (not (@Image='id'))]
+          [not(ancestor::ForInit)]
+          [not((ancestor::FormalParameter) and (ancestor::TryStatement))]
+        </value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule ref="category/java/design.xml">
+    <!-- LoosePackageCoupling requires package/class defined to function properly -->
+    <exclude name="LoosePackageCoupling"/>
+    <!-- DataClass flags errors in SpringBoot configuration beans -->
+    <exclude name="DataClass"/>
+    <exclude name="ExcessiveImports"/>
+    <exclude name="LawOfDemeter"/>
+    <exclude name="NcssCount"/>
+  </rule>
+
+  <rule ref="category/java/design.xml/ExcessiveImports">
+    <priority>5</priority>
+  </rule>
+
+  <rule ref="category/java/design.xml/NcssCount">
+    <priority>5</priority>
+  </rule>
+
+  <rule ref="category/java/documentation.xml">
+    <exclude name="CommentSize"/>
+  </rule>
+
+  <rule ref="category/java/documentation.xml/CommentRequired">
+    <properties>
+      <property name="fieldCommentRequirement" value="Ignored"/>
+    </properties>
+  </rule>
+
+  <rule ref="category/java/errorprone.xml">
+    <exclude name="DataflowAnomalyAnalysis"/>
+    <exclude name="BeanMembersShouldSerialize"/>
+  </rule>
+
+  <rule ref="category/java/multithreading.xml"/>
+
+  <rule ref="category/java/performance.xml"/>
+</ruleset>

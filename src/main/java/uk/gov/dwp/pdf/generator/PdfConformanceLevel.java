@@ -1,5 +1,9 @@
 package uk.gov.dwp.pdf.generator;
 
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * The PDF conformance levels supported.
  */
@@ -13,5 +17,18 @@ public enum PdfConformanceLevel {
   PDFA_3_A,
   PDFA_3_B,
   PDFA_3_U,
-  PDF_UA;
+  PDF_UA {
+    @Override
+    public void imposeOn(PdfRendererBuilder builder) {
+      LOGGER.info("building a PDF/UA accessible pdf");
+      builder.usePdfUaAccessbility(true);
+    }
+  };
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(PdfConformanceLevel.class.getName());
+
+  public void imposeOn(PdfRendererBuilder builder) {
+    LOGGER.info("building pdf to comply with conformance level {}", this.name());
+    builder.usePdfAConformance(PdfRendererBuilder.PdfAConformance.valueOf(this.name()));
+  }
 }

@@ -10,6 +10,7 @@
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Take an XHTML document and produce and pdf document at various conformance levels</description>
+    <url>https://github.com/dwp/html-to-pdf</url>
 
     <licenses>
         <license>
@@ -18,6 +19,21 @@
             <url>http://www.opensource.org/licenses/mit-license.php</url>
         </license>
     </licenses>
+
+    <developers>
+        <developer>
+            <name>Steve Elliott</name>
+            <organization>DWP</organization>
+            <email>steve.elliott2@dwp.gov.uk</email>
+            <organizationUrl>http://www.gov.uk/dwp</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:dwp/html-to-pdf.git</connection>
+        <developerConnection>scm:git:ssh://github.com:dwp/html-to-pdf.git</developerConnection>
+        <url>https://github.com/dwp/html-to-pdf</url>
+    </scm>
 
     <properties>
         <openhtml.version>1.0.0</openhtml.version>

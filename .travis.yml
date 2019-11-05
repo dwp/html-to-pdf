@@ -1,5 +1,5 @@
 language: java
-
+install: true
 branches:
   only:
     - master
@@ -13,4 +13,4 @@ jobs:
     - stage: unit-test
       script: mvn clean test
     - stage: owasp-check
-      script: mvn clean verify org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=4 -Dmaven.test.skip=true
+      script: mvn clean verify org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=4 -Dmaven.test.skip=true -Dgpg.skip=true

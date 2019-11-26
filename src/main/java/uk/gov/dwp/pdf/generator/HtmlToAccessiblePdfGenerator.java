@@ -12,7 +12,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Implementation of the HtmlToPdfGenerator to create PDFs
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings({"PMD.CommentDefaultAccessModifier", "PMD.AvoidCatchingGenericException"})
 class HtmlToAccessiblePdfGenerator implements HtmlToPdfGenerator {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(
       HtmlToAccessiblePdfGenerator.class.getName());
 
@@ -31,28 +34,29 @@ class HtmlToAccessiblePdfGenerator implements HtmlToPdfGenerator {
       throws PdfaGeneratorException {
 
     try {
-      byte[] pdf;
+      final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-      try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+      final PdfRendererBuilder pdfBuilder = new PdfRendererBuilder()
+          .defaultTextDirection(PdfRendererBuilder.TextDirection.LTR)
+          .useColorProfile(colourProfile)
+          .useSVGDrawer(new BatikSVGDrawer())
+          .withHtmlContent(html, null)
+          .useFastMode()
+          .toStream(outputStream);
 
-        final PdfRendererBuilder pdfBuilder = new PdfRendererBuilder()
-            .defaultTextDirection(PdfRendererBuilder.TextDirection.LTR)
-            .useColorProfile(colourProfile)
-            .useSVGDrawer(new BatikSVGDrawer())
-            .withHtmlContent(html, null)
-            .useFastMode()
-            .toStream(outputStream);
+      Optional.ofNullable(conformanceLevel)
+          .orElseThrow(() -> new IllegalArgumentException("Conformance level must not be null"))
+          .imposeOn(pdfBuilder);
 
-        setConformanceLevel(pdfBuilder, conformanceLevel);
+      verifyFontApplication(fontMap, html, conformanceLevel);
 
-        verifyFontApplication(fontMap, html, conformanceLevel);
+      final PdfBoxRenderer pdfBoxRenderer = pdfBuilder.buildPdfRenderer();
+      populateFontResolver(pdfBoxRenderer.getFontResolver(), fontMap);
+      pdfBoxRenderer.createPDF();
 
-        final PdfBoxRenderer pdfBoxRenderer = pdfBuilder.buildPdfRenderer();
-        populateFontResolver(pdfBoxRenderer.getFontResolver(), fontMap);
-        pdfBoxRenderer.createPDF();
-        pdf = outputStream.toByteArray();
-        LOGGER.info("successfully generated pdf");
-      }
+      final byte[] pdf = outputStream.toByteArray();
+
+      LOGGER.info("successfully generated pdf");
 
       return pdf;
 
@@ -63,20 +67,12 @@ class HtmlToAccessiblePdfGenerator implements HtmlToPdfGenerator {
     }
   }
 
-  private void setConformanceLevel(final PdfRendererBuilder pdfBuilder,
-                                   final PdfConformanceLevel conformanceLevel) {
-    if (conformanceLevel == null) {
-      throw new IllegalArgumentException("Conformance level must not be null");
-    }
+  private Predicate<String> fontNotIn(final Set<String> fonts) {
+    return line -> fonts.stream().noneMatch(font -> line.contains(font));
+  }
 
-    if (conformanceLevel == PdfConformanceLevel.PDF_UA) {
-      LOGGER.info("building a PDF/UA accessible pdf");
-      pdfBuilder.usePdfUaAccessbility(true);
-    } else {
-      LOGGER.info("building pdf to comply with conformance level {}", conformanceLevel);
-      pdfBuilder.usePdfAConformance(
-          PdfRendererBuilder.PdfAConformance.valueOf(conformanceLevel.name()));
-    }
+  private boolean lineContainsFont(final String line) {
+    return line.contains("font-family");
   }
 
   private void verifyFontApplication(final Map<String, byte[]> fontMap,
@@ -87,26 +83,19 @@ class HtmlToAccessiblePdfGenerator implements HtmlToPdfGenerator {
     if (html != null && conformanceLevel != PdfConformanceLevel.NONE) {
       LOGGER.debug("validate that all fonts in the document are contained in the font map");
 
-      for (final String fontHtml : Arrays.stream(html.split("\n"))
-          .filter(line -> line.contains("font-family"))
+      final Optional<String> missingFontLine = Arrays.stream(html.split("\n"))
+          .filter(this::lineContainsFont)
           .map(String::trim)
-          .collect(Collectors.toList())) {
-        boolean fontMissing = true;
+          .filter(fontNotIn(fontMap.keySet()))
+          .findFirst();
 
-        for (final String item : fontMap.keySet()) {
-          if (fontHtml.contains(item)) {
-            LOGGER.debug("successfully found embedded font {}'", item);
-            fontMissing = false;
-            break;
-          }
-        }
-
-        if (fontMissing) {
-          throw new PdfaGeneratorException(
-              String.format("html element requests %s. "
-                      + "It is not passed in the font map, cannot encode.",
-                  fontHtml.replaceAll(";", "").trim()));
-        }
+      if (missingFontLine.isPresent()) {
+        throw new PdfaGeneratorException(
+            String.format("html element requests %s. "
+                    + "It is not passed in the font map, cannot encode.",
+                missingFontLine.get().replaceAll(";", "").trim()
+            )
+        );
       }
     }
   }

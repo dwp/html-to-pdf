@@ -46,7 +46,7 @@
         <lombok.version>1.18.8</lombok.version>
         <slf4j.version>1.7.28</slf4j.version>
         <verapdf.version>1.14.102</verapdf.version>
-        <commons-io.version>1.3.2</commons-io.version>
+        <commons-io.version>2.7</commons-io.version>
         <jacoco.version>0.8.2</jacoco.version>
         <pmd.version>6.15.0</pmd.version>
         <java.version>1.8</java.version>

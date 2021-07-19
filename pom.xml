@@ -40,7 +40,7 @@
         <mvn-javadoc.version>3.1.1</mvn-javadoc.version>
         <mvn-source.version>3.2.0</mvn-source.version>
         <mvn-gpg.version>1.6</mvn-gpg.version>
-        <openhtml.version>1.0.1</openhtml.version>
+        <openhtml.version>1.0.9</openhtml.version>
         <junit.version>4.11</junit.version>
         <mockito.version>2.24.5</mockito.version>
         <lombok.version>1.18.8</lombok.version>
